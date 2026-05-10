@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/BSPNAIDU/money-management.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 bat 'docker build -t money-management .'

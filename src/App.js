@@ -1,199 +1,122 @@
 import React, { useState } from "react";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
 
-  // Registration States
-  const [registerName, setRegisterName] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
+  const [salary, setSalary] = useState("");
+  const [salarySaved, setSalarySaved] = useState(false);
 
-  // Login States
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [expense, setExpense] = useState({
+    category: "Food",
+    description: "",
+    amount: "",
+  });
 
-  // User State
-  const [user, setUser] = useState(null);
-
-  // Expense States
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Food");
   const [expenses, setExpenses] = useState([]);
 
-  // Register Function
-  const handleRegister = () => {
-
-    if (!registerName || !registerEmail || !registerPassword) {
-      alert("Please fill all registration fields");
-      return;
-    }
-
-    const newUser = {
-      name: registerName,
-      email: registerEmail,
-      password: registerPassword
-    };
-
-    localStorage.setItem("user", JSON.stringify(newUser));
-
-    alert("Registration Successful!");
-
-    setRegisterName("");
-    setRegisterEmail("");
-    setRegisterPassword("");
+  // Budget Split
+  const categoryPercentages = {
+    Food: 0.2,
+    Travel: 0.15,
+    Shopping: 0.15,
+    Bills: 0.3,
+    Entertainment: 0.1,
+    Savings: 0.1,
   };
 
-  // Login Function
-  const handleLogin = () => {
+  // Calculate Budgets
+  const budgets = {};
 
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-
-    if (
-      storedUser &&
-      loginEmail === storedUser.email &&
-      loginPassword === storedUser.password
-    ) {
-
-      setUser(storedUser);
-
-      alert("Login Successful");
-
-    } else {
-
-      alert("Invalid Email or Password");
-    }
-  };
+  Object.keys(categoryPercentages).forEach((category) => {
+    budgets[category] = salary * categoryPercentages[category];
+  });
 
   // Add Expense
   const addExpense = () => {
-
-    if (!amount || !description) {
-      alert("Please fill all expense fields");
+    if (!expense.description || !expense.amount) {
+      alert("Please fill all fields");
       return;
     }
 
-    const newExpense = {
-      amount: Number(amount),
-      description,
-      category
-    };
+    setExpenses([...expenses, expense]);
 
-    setExpenses([...expenses, newExpense]);
-
-    setAmount("");
-    setDescription("");
+    setExpense({
+      category: "Food",
+      description: "",
+      amount: "",
+    });
   };
 
   // Category Totals
-  const categoryTotals = {
-    Food: 0,
-    Travel: 0,
-    Shopping: 0,
-    Bills: 0,
-    Entertainment: 0
-  };
+  const categoryTotals = {};
 
-  expenses.forEach((expense) => {
-    categoryTotals[expense.category] += expense.amount;
+  expenses.forEach((item) => {
+    categoryTotals[item.category] =
+      (categoryTotals[item.category] || 0) + Number(item.amount);
   });
 
   // Overall Total
   const overallTotal = expenses.reduce(
-    (total, expense) => total + expense.amount,
+    (total, item) => total + Number(item.amount),
     0
   );
 
-  // Highest Expense Category
-  const highestCategory = Object.keys(categoryTotals).reduce((a, b) =>
-    categoryTotals[a] > categoryTotals[b] ? a : b
-  );
-
-  // Logout
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  // LOGIN + REGISTER PAGE
-  if (!user) {
+  // LOGIN PAGE
+  if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center bg-blue-100">
+        <div className="bg-white p-10 rounded-xl shadow-lg w-96">
+          <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">
+            Money Management System
+          </h1>
 
-        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl grid md:grid-cols-2 gap-6">
+          <input
+            type="email"
+            placeholder="Enter Email"
+            className="w-full border p-3 rounded mb-4"
+          />
 
-          {/* Register */}
-          <div>
+          <input
+            type="password"
+            placeholder="Enter Password"
+            className="w-full border p-3 rounded mb-4"
+          />
 
-            <h2 className="text-3xl font-bold mb-6 text-center text-blue-600">
-              Register
-            </h2>
-
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full border p-3 rounded mb-4"
-              value={registerName}
-              onChange={(e) => setRegisterName(e.target.value)}
-            />
-
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full border p-3 rounded mb-4"
-              value={registerEmail}
-              onChange={(e) => setRegisterEmail(e.target.value)}
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full border p-3 rounded mb-4"
-              value={registerPassword}
-              onChange={(e) => setRegisterPassword(e.target.value)}
-            />
-
-            <button
-              onClick={handleRegister}
-              className="bg-blue-500 hover:bg-blue-700 text-white w-full p-3 rounded"
-            >
-              Register
-            </button>
-
-          </div>
-
-          {/* Login */}
-          <div>
-
-            <h2 className="text-3xl font-bold mb-6 text-center text-purple-600">
-              Login
-            </h2>
-
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full border p-3 rounded mb-4"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full border p-3 rounded mb-4"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-            />
-
-            <button
-              onClick={handleLogin}
-              className="bg-purple-500 hover:bg-purple-700 text-white w-full p-3 rounded"
-            >
-              Login
-            </button>
-
-          </div>
-
+          <button
+            onClick={() => setLoggedIn(true)}
+            className="bg-blue-500 text-white w-full py-3 rounded hover:bg-blue-600"
+          >
+            Login
+          </button>
         </div>
+      </div>
+    );
+  }
 
+  // SALARY PAGE
+  if (!salarySaved) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-10 rounded-xl shadow-lg w-96">
+          <h1 className="text-3xl font-bold mb-6 text-center text-green-600">
+            Enter Monthly Salary
+          </h1>
+
+          <input
+            type="number"
+            placeholder="Enter Salary"
+            value={salary}
+            onChange={(e) => setSalary(e.target.value)}
+            className="w-full border p-3 rounded mb-4"
+          />
+
+          <button
+            onClick={() => setSalarySaved(true)}
+            className="bg-green-500 text-white w-full py-3 rounded hover:bg-green-600"
+          >
+            Save Salary
+          </button>
+        </div>
       </div>
     );
   }
@@ -201,52 +124,64 @@ function App() {
   // DASHBOARD
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-blue-600">
-          Money Management Dashboard
+          Expense Dashboard
         </h1>
 
         <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-700 text-white px-5 py-2 rounded"
+          onClick={() => {
+            setLoggedIn(false);
+            setSalarySaved(false);
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded"
         >
           Logout
         </button>
-
       </div>
 
-      {/* Add Expense Card */}
+      {/* Top Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-bold mb-2">Monthly Salary</h2>
+
+          <p className="text-2xl text-green-600 font-bold">
+            ₹{salary}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-bold mb-2">Total Expenses</h2>
+
+          <p className="text-2xl text-red-500 font-bold">
+            ₹{overallTotal}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-bold mb-2">Remaining Balance</h2>
+
+          <p className="text-2xl text-blue-600 font-bold">
+            ₹{salary - overallTotal}
+          </p>
+        </div>
+      </div>
+
+      {/* Add Expense */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h2 className="text-2xl font-bold mb-4">Add Expense</h2>
 
-        <h2 className="text-2xl font-bold mb-4">
-          Add Expense
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-4">
-
-          <input
-            type="number"
-            placeholder="Amount"
-            className="border p-3 rounded"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Description"
-            className="border p-3 rounded"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
+            value={expense.category}
+            onChange={(e) =>
+              setExpense({
+                ...expense,
+                category: e.target.value,
+              })
+            }
             className="border p-3 rounded"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
           >
             <option>Food</option>
             <option>Travel</option>
@@ -255,86 +190,127 @@ function App() {
             <option>Entertainment</option>
           </select>
 
-        </div>
+          <input
+            type="text"
+            placeholder="Description"
+            value={expense.description}
+            onChange={(e) =>
+              setExpense({
+                ...expense,
+                description: e.target.value,
+              })
+            }
+            className="border p-3 rounded"
+          />
 
-        <button
-          onClick={addExpense}
-          className="mt-4 bg-green-500 hover:bg-green-700 text-white px-6 py-3 rounded"
-        >
-          Add Expense
-        </button>
+          <input
+            type="number"
+            placeholder="Amount"
+            value={expense.amount}
+            onChange={(e) =>
+              setExpense({
+                ...expense,
+                amount: e.target.value,
+              })
+            }
+            className="border p-3 rounded"
+          />
 
-      </div>
-
-      {/* Category Totals */}
-      <div className="grid md:grid-cols-5 gap-4 mb-8">
-
-        {Object.entries(categoryTotals).map(([cat, total]) => (
-
-          <div
-            key={cat}
-            className={`p-4 rounded-xl shadow-lg text-white text-center
-            ${cat === highestCategory ? "bg-red-500" : "bg-green-500"}`}
+          <button
+            onClick={addExpense}
+            className="bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-
-            <h3 className="text-xl font-bold">{cat}</h3>
-
-            <p className="text-2xl mt-2">₹{total}</p>
-
-          </div>
-
-        ))}
-
+            Add Expense
+          </button>
+        </div>
       </div>
 
-      {/* Overall Total */}
-      <div className="bg-blue-500 text-white p-6 rounded-xl shadow-lg mb-8 text-center">
+      {/* Budget Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {Object.keys(budgets).map((category) => {
+          const spent = categoryTotals[category] || 0;
 
-        <h2 className="text-3xl font-bold">
-          Overall Total Expense
-        </h2>
+          const exceeded = spent > budgets[category];
 
-        <p className="text-4xl mt-4">
-          ₹{overallTotal}
-        </p>
+          return (
+            <div
+              key={category}
+              className={`p-6 rounded-xl shadow-lg text-white ${
+                exceeded ? "bg-red-500" : "bg-green-500"
+              }`}
+            >
+              <h2 className="text-2xl font-bold mb-3">
+                {category}
+              </h2>
 
+              <p>Budget: ₹{budgets[category]}</p>
+
+              <p>Spent: ₹{spent}</p>
+
+              <p className="mt-2 font-bold">
+                {exceeded
+                  ? "Budget Exceeded"
+                  : "Within Budget"}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Expense History */}
-      <div className="bg-white rounded-xl shadow-lg p-6 overflow-x-auto">
-
+      <div className="bg-white p-6 rounded-xl shadow-lg overflow-auto">
         <h2 className="text-2xl font-bold mb-4">
           Expense History
         </h2>
 
         <table className="w-full border-collapse">
-
           <thead>
             <tr className="bg-gray-200">
-              <th className="border p-3">Category</th>
-              <th className="border p-3">Description</th>
-              <th className="border p-3">Amount</th>
+              <th className="p-3 border">Category</th>
+              <th className="p-3 border">Description</th>
+              <th className="p-3 border">Amount</th>
+              <th className="p-3 border">Status</th>
             </tr>
           </thead>
 
           <tbody>
+            {expenses.map((item, index) => {
+              const exceeded =
+                categoryTotals[item.category] >
+                budgets[item.category];
 
-            {expenses.map((expense, index) => (
+              return (
+                <tr
+                  key={index}
+                  className={
+                    exceeded
+                      ? "bg-red-100"
+                      : "bg-green-100"
+                  }
+                >
+                  <td className="p-3 border">
+                    {item.category}
+                  </td>
 
-              <tr key={index}>
-                <td className="border p-3">{expense.category}</td>
-                <td className="border p-3">{expense.description}</td>
-                <td className="border p-3">₹{expense.amount}</td>
-              </tr>
+                  <td className="p-3 border">
+                    {item.description}
+                  </td>
 
-            ))}
+                  <td className="p-3 border">
+                    ₹{item.amount}
+                  </td>
 
+                  <td className="p-3 border font-bold">
+                    {exceeded
+                      ? "High Spending"
+                      : "Safe Spending"}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }

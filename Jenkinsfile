@@ -13,7 +13,7 @@ pipeline {
             steps {
                 bat 'docker stop money-management-container || exit 0'
                 bat 'docker rm money-management-container || exit 0'
-                bat 'docker run -d -p 3000:3000 --name money-management-container money-management'
+                bat 'docker run -d -p 3001:3000 --name money-management-container money-management'
             }
         }
 

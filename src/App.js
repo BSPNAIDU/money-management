@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { supabase } from "./supabaseClient";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -31,22 +32,6 @@ function App() {
     budgets[category] = salary * categoryPercentages[category];
   });
 
-  // Add Expense
-  const addExpense = () => {
-    if (!expense.description || !expense.amount) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    setExpenses([...expenses, expense]);
-
-    setExpense({
-      category: "Food",
-      description: "",
-      amount: "",
-    });
-  };
-
   // Category Totals
   const categoryTotals = {};
 
@@ -54,6 +39,56 @@ function App() {
     categoryTotals[item.category] =
       (categoryTotals[item.category] || 0) + Number(item.amount);
   });
+
+  // Add Expense with Supabase
+  const addExpense = async () => {
+    if (!expense.description || !expense.amount) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const spent = categoryTotals[expense.category] || 0;
+
+    const exceeded = spent > budgets[expense.category];
+
+    const status = exceeded
+      ? "High Spending"
+      : "Safe Spending";
+
+    const { data, error } = await supabase
+      .from("expenses")
+      .insert([
+        {
+          category: expense.category,
+          description: expense.description,
+          amount: expense.amount,
+          salary: salary,
+          status: status,
+        },
+      ]);
+
+    if (error) {
+      console.log(error);
+      alert("Error saving expense");
+      return;
+    }
+
+    alert("Expense Saved Successfully");
+
+    setExpenses([
+      ...expenses,
+      {
+        ...expense,
+        status,
+      },
+    ]);
+
+    setExpense({
+      category: "Food",
+      description: "",
+      amount: "",
+    });
+  };
 
   // Overall Total
   const overallTotal = expenses.reduce(
@@ -124,6 +159,7 @@ function App() {
   // DASHBOARD
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-blue-600">
@@ -143,8 +179,11 @@ function App() {
 
       {/* Top Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
         <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-bold mb-2">Monthly Salary</h2>
+          <h2 className="text-xl font-bold mb-2">
+            Monthly Salary
+          </h2>
 
           <p className="text-2xl text-green-600 font-bold">
             ₹{salary}
@@ -152,7 +191,9 @@ function App() {
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-bold mb-2">Total Expenses</h2>
+          <h2 className="text-xl font-bold mb-2">
+            Total Expenses
+          </h2>
 
           <p className="text-2xl text-red-500 font-bold">
             ₹{overallTotal}
@@ -160,19 +201,26 @@ function App() {
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-bold mb-2">Remaining Balance</h2>
+          <h2 className="text-xl font-bold mb-2">
+            Remaining Balance
+          </h2>
 
           <p className="text-2xl text-blue-600 font-bold">
             ₹{salary - overallTotal}
           </p>
         </div>
+
       </div>
 
       {/* Add Expense */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
-        <h2 className="text-2xl font-bold mb-4">Add Expense</h2>
+
+        <h2 className="text-2xl font-bold mb-4">
+          Add Expense
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
           <select
             value={expense.category}
             onChange={(e) =>
@@ -222,12 +270,15 @@ function App() {
           >
             Add Expense
           </button>
+
         </div>
       </div>
 
       {/* Budget Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
         {Object.keys(budgets).map((category) => {
+
           const spent = categoryTotals[category] || 0;
 
           const exceeded = spent > budgets[category];
@@ -243,27 +294,35 @@ function App() {
                 {category}
               </h2>
 
-              <p>Budget: ₹{budgets[category]}</p>
+              <p>
+                Budget: ₹{budgets[category]}
+              </p>
 
-              <p>Spent: ₹{spent}</p>
+              <p>
+                Spent: ₹{spent}
+              </p>
 
               <p className="mt-2 font-bold">
                 {exceeded
                   ? "Budget Exceeded"
                   : "Within Budget"}
               </p>
+
             </div>
           );
         })}
+
       </div>
 
       {/* Expense History */}
       <div className="bg-white p-6 rounded-xl shadow-lg overflow-auto">
+
         <h2 className="text-2xl font-bold mb-4">
           Expense History
         </h2>
 
         <table className="w-full border-collapse">
+
           <thead>
             <tr className="bg-gray-200">
               <th className="p-3 border">Category</th>
@@ -274,7 +333,9 @@ function App() {
           </thead>
 
           <tbody>
+
             {expenses.map((item, index) => {
+
               const exceeded =
                 categoryTotals[item.category] >
                 budgets[item.category];
@@ -288,6 +349,7 @@ function App() {
                       : "bg-green-100"
                   }
                 >
+
                   <td className="p-3 border">
                     {item.category}
                   </td>
@@ -305,9 +367,11 @@ function App() {
                       ? "High Spending"
                       : "Safe Spending"}
                   </td>
+
                 </tr>
               );
             })}
+
           </tbody>
         </table>
       </div>
